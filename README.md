@@ -1,244 +1,107 @@
-# GSoC 2025 Final Report: Improving Geo-Coordinate Extraction and Precision in DBpedia's Extraction Framework
+Project Overview
 
-**Program:** Google Summer of Code 2025  
-**Organization:** DBpedia  
-**Contributor:** Haniya Konain <br>
-**Mentors:** Nausheen Fatma, Dimitris Kontokostas  
-**Duration:** May - September 2025
+This project focused on improving the geo-coordinate extraction system within DBpedia’s Extraction Framework. The existing system faced major accuracy issues, particularly for Southern Hemisphere locations, where longitude values were incorrectly stored with positive signs. Additionally, limited support for multilingual coordinate templates resulted in parsing failures and missing geographic data.
 
-## 🎯 Quick Navigation
+The goal was to significantly improve coordinate precision, expand language coverage, and enhance debugging capabilities for developers working with the extraction server.
 
-- [Project Overview](#project-overview)   
-- [Key Improvements](#key-improvements)  
-- [Project Deliverables](#project-deliverables)  
-- [Code Merged](#code-merged--integration-status)  
-- [Impact & Results](#impact--results)  
-- [Challenges & Learnings](#challenges-overcome--key-learnings)  
-- [Acknowledgments](#acknowledgments)  
+Problem Statement
 
-## Project Overview
+Southern Hemisphere coordinates incorrectly parsed (~60% accuracy)
 
-DBpedia's geo-coordinate extraction system had critical accuracy issues, particularly for Southern Hemisphere locations where coordinates were incorrectly stored with positive longitude values. Wikipedia's diverse coordinate template formats across languages often failed to parse correctly, resulting in missing or inaccurate geographic data.
+Only 5 languages supported for coordinate templates
 
-### Problem Statement
+Rigid parsing logic failed for diverse international formats
 
-- **Coordinate Inaccuracy:** ~60% accuracy for Southern Hemisphere coordinates
-- **Limited Language Support:** Only 5 languages supported
-- **Parser Inflexibility:** Rigid parsing logic couldn't handle diverse coordinate formats
-#### Before: Test Failures and Errors
-![Before - Test results showing multiple parsing errors](images/before-parser-tests.png)
-*Original parser showed  errors in testing. The parser failed to handle Southern Hemisphere coordinates and diverse international formats correctly.*
+No support for individual extractor debugging on the mapping server
 
-### Solution Goals
+PR #779: Enhanced Geo-Coordinate Parsing & Precision
 
-- Enhance geo-coordinate parsing accuracy and precision
-- Implement robust multi-language support
-- Add comprehensive input validation and error handling
-- Enable individual extractor debugging capabilities
-#### After: Clean Test Results
-![After - All tests passing with improved performance](images/after-parser-tests.png)
-*Enhanced parser shows 0 errors and 0 failures, with successful parsing across all language variants. Improved build time (0.615s test execution) and proper handling of multi-language coordinate formats, including proper Southern Hemisphere coordinate recognition.*
+Status: ✅ Approved & Ready for Merge
+Impact Area: Core Data Parser
 
-## PR #779: Enhance Geo-Coordinate Parsing and Precision in Extraction Framework 
+Key Improvements
 
-**Status:** ✅ Approved & Ready for Merge  
-**Changes:** +998 −147 lines across 5 files  
-**Repository:** [Pull Request #779](https://github.com/dbpedia/extraction-framework/pull/779)
+Fixed hemisphere sign handling logic
 
-### Architecture Overview
+Expanded language support from 5 to 19 languages
 
-```
-extraction-framework/
-├── core/                                        # Core extraction logic
-│   └── src/main/scala/org/dbpedia/extraction/
-│       ├── config/dataparser/
-│       │   └── GeoCoordinateParserConfig.scala  # Multi-language coordinate config
-│       ├── dataparser/
-│       │   └── GeoCoordinateParser.scala        # Enhanced coordinate parsing
-│       └── mappings/
-│           └── GeoCoordinatesMapping.scala      # Clean RDF output generation
-└── test/                                        # Comprehensive test suite
-    └── scala/org/dbpedia/extraction/dataparser/
-        └── GeoCoordinateParserTest.scala        # 25+ validation test cases
-```
+Added native character recognition (Arabic, Chinese, Japanese, Korean, etc.)
 
-### Key Improvements
+Improved regex patterns for 25+ coordinate template formats
 
-**Core Parser Enhancements:**
-- Fixed Southern Hemisphere coordinate errors by removing deprecated hemisphere logic
-- Added support for 19 languages with native character recognition (Arabic, Chinese, Japanese, etc.)
-- Implemented comprehensive input validation and BigDecimal precision for accurate calculations
-- Enhanced regex patterns to handle diverse coordinate formats across languages
+Implemented BigDecimal precision for accurate coordinate calculations
 
-### Enhanced Language Support
+Added comprehensive validation and error handling
 
-| Feature | Before | After |
-|---------|---------|-------|
-| Languages | 5 | 19 |
-| Direction Mappings | English only | Native characters (Arabic, Chinese, Japanese, etc.) |
-| Template Recognition | 3 formats | 25+ coordinate template variants |
+Results
 
-### Testing Implementation
-- Added comprehensive unit tests for coordinate parsing logic
-- Implemented integration tests for various coordinate formats and languages
-- Created specific test coverage for German coordinate formats
-- Added Southern Hemisphere validation tests to prevent regression
+Southern Hemisphere accuracy improved from ~60% to ~95%
 
-### Before & After: Coordinate Parser Testing
+Parse success rate increased from 75% to 94%
 
-#### Before: Test Failures and Errors
-![Before - Test results showing multiple errors and failures](images/before-parser-test.png)<br>
-*Original parser had 25 errors in testing, with issues parsing Chinese, Korean, Afrikaans, and German coordinate formats.*
+~50,000+ geographic entities corrected
 
-#### After: Clean Test Results
-![After - All tests passing with improved performance](images/after-parser-test.png)<br>
-*Enhanced parser shows 0 errors and 0 failures, with successful parsing across all language variants. Improved build time (1.682s test execution) and proper handling of multi-language coordinate formats.*
+Reduced test failures from 25 errors to 0 errors
 
-### Impact & Results
-- **Coordinate Accuracy:** Improved from ~60% to ~95% for Southern Hemisphere locations
-- **Language Coverage:** Expanded from 5 to 19 languages with native script support
-- **Parse Success Rate:** Increased from 75% to 94%
-- **Geographic Entities Affected:** ~50,000+ Southern Hemisphere entries improved
-- **Test Suite Results:** Reduced from 25 errors to 0 errors/failures in comprehensive testing
+PR #780: Enable Single-Extractor Execution on Mapping Server
 
-## PR #780: Enable single-extractor execution on the mapping server
+Status: ✅ Approved & Ready for Merge
+Impact Area: Server Debugging & Performance
 
-**Status:** ✅ Approved & Ready for Merge  
-**Changes:** +380 −79 lines across 4 files  
-**Repository:** [Pull Request #780](https://github.com/dbpedia/extraction-framework/pull/780)
+Key Improvements
 
-### Architecture Overview
+Implemented intelligent caching using Guava LoadingCache
 
-```
-extraction-framework/
-└── server/                                      # Web extraction server
-    └── src/main/scala/org/dbpedia/extraction/server/
-        ├── Server.scala                         # Caching & extractor execution
-        ├── ServerConfiguration.scala            # Centralized config management
-        └── resources/Extraction.scala           # Individual extractor web UI
-```
+Reduced extractor initialization time by ~90%
 
-### Server Enhancements
+Added dynamic dropdown for selecting individual extractors
 
-**Core Improvements:**
-- Implemented intelligent caching with Guava LoadingCache for 90% faster extractor initialization
-- Added individual extractor selection capability with dynamic dropdown population
-- Enhanced error handling and monitoring with comprehensive logging and cache statistics
-- Centralized configuration management for improved maintainability and performance
+Centralized configuration management
 
-### Before & After: Enable single-extractor execution on the mapping server
+Improved logging and error monitoring
 
-#### Before: Limited Options
-![Before - Basic dropdown with only two options](images/before-server-ui.png)<br>
-*The original interface only offered "Mappings Only" and "All Enabled Extractors" options*
+Results
 
-#### After: Individual Extractor Selection
-![After - Comprehensive dropdown with individual extractors](images/after-server-ui.png)<br>
-*The enhanced interface now provides a dropdown with all available extractors for individual testing*
+90% faster extractor initialization
 
-### Impact & Results
-- **Server Performance:** ~90% faster extractor initialization through intelligent caching
-- **System Reliability:** Improved error handling and graceful degradation
-- **Maintainability:** Centralized configuration management reduces code complexity
+Better debugging support for developers
 
-## Performance Improvements Summary
+Improved maintainability and modular server design
 
-| Metric | Before | After | Improvement |
-|--------|---------|-------|-------------|
-| Coordinate Accuracy (Southern Hemisphere) | ~60% | ~95% | 58% increase |
-| Server Extractor Initialization | Every request | Cached | ~90% faster |
-| Parse Success Rate | 75% | 94% | 25% improvement |
+Performance Improvements Summary
+Metric	Before	After	Improvement
+Southern Hemisphere Accuracy	~60%	~95%	+58%
+Parse Success Rate	75%	94%	+25%
+Extractor Initialization	Every Request	Cached	~90% Faster
+Language Support	5	19	280% Increase
+Code Quality & Verification
 
-## Code Quality & Testing
+1,378 lines added, 226 lines removed
 
-### Quality Assurance
-- **SonarQube Analysis:** ✅ Quality Gate Passed (0 new issues)
-- **GitHub Actions CI/CD:** ✅ All automated checks successful
-- **Code Review:** ✅ Approved by project maintainers
-- **Integration Testing:** ✅ All tests passing in production environment
+9 core framework files modified
 
-### Test Coverage
-- **Unit Tests:** 25+ test cases covering coordinate parsing logic
-- **Integration Tests:** Multi-language format validation
-- **Edge Case Testing:** Southern Hemisphere accuracy validation
-- **Performance Tests:** Cache efficiency and server response testing
+SonarQube Quality Gate Passed
 
-## Technical Skills Developed
-- **Development Environment**: Transitioned from VS Code to IntelliJ IDEA for better Scala development experience
-- **Build Systems**: Learned to effectively run and debug Scala applications using Maven
-- **Scala Fundamentals**: Developed proficiency in Scala syntax, pattern matching, and object-oriented concepts from a programming fundamentals perspective
+All CI/CD checks successful
 
-## Key Learning Breakthroughs
-- **Week 3**: Finally understood that the coordinate parsing problem was in **GeoCoordinateParser.scala** and not in **GeoCoordinatesMapping.scala** - this insight redirected my entire debugging approach
-- **Week 7**: Discovered that **some coordinate templates were not being parsed** at all, leading to the multi-language template recognition enhancement
-- **Week 10**: Based on mentor suggestions, implemented **single extractor logic rather than predicate filtering**, which significantly improved the server's debugging capabilities
+Approved by project maintainers
 
-## Mentorship and Collaboration
-- **Weekly Sync Pattern**: Established effective weekly check-ins focusing on technical blockers rather than status updates
-- **Code Review Process**: Learned to structure PRs with clear commit messages and comprehensive descriptions for faster review cycles  
-- **Technical Communication**: Improved at explaining complex coordinate parsing logic to mentors with different technical backgrounds
+Technical Skills Developed
 
-## Project Deliverables
+Advanced Scala development and debugging
 
-### ✅ Completed 
-- **Enhanced Geo-Coordinate Parser** - Production-ready with 95% accuracy
-- **Multi-Language Support System** - 19 languages with native character support
-- **Comprehensive Test Suite** - 25+ test cases with full coverage
-- **Performance Optimization** - 90% faster server response times
+Multi-language parsing logic design
 
-### 📊 Impact Metrics
-- **Geographic Entities Improved:** ~50,000+ Southern Hemisphere entries
-- **Code Maintainability:** Centralized configuration management
-- **International Reach:** Support for Arabic, Chinese, Japanese, Korean, Russian scripts
+Regex optimization for international data formats
 
-## Challenges Overcome & Key Learnings
+Performance tuning using caching strategies
 
-### Technical Challenges
-- **Multi-language Parsing:** Supporting diverse coordinate formats and native characters across 19 languages required extensive research into international standards.
-- **Performance Optimization:** Implemented intelligent caching strategies using Guava LoadingCache to balance efficiency with memory usage in multi-threaded environments.
-- **Southern Hemisphere Accuracy:** Fixed coordinate sign conventions and hemisphere logic, particularly for edge cases near the International Date Line.
+Maven build and testing workflows
 
-### Personal Growth
-- **Consistency and Persistence:** Maintaining daily progress despite complex challenges by breaking problems into manageable components was crucial for success.
-- **Effective Mentorship:** Learning to ask specific, research-backed questions rather than vague requests led to more productive mentor discussions and faster problem resolution.
-- **Self-Confidence:** Overcoming initial overwhelm by trusting my abilities and gradual learning process. 
+Production-grade unit and integration testing
 
-## What's Left to Do
+Impact
 
-### Immediate Post-GSoC Work
-- **Production Monitoring:** Monitor coordinate parsing accuracy in production deployment for edge cases
-- **Community Feedback:** Gather developer feedback on single-extractor server functionality
-- **Cache Optimization:** Fine-tune cache parameters based on real-world server usage patterns
+This project significantly improves DBpedia’s geographic data reliability and international coverage. The enhanced parser ensures accurate representation of global locations, while the new server debugging capabilities empower contributors to test and validate extractors more efficiently.
 
-
-## Code Merged & Integration Status
-
-### ✅ Ready for Production Merge
-
-Both pull requests have been approved by DBpedia maintainers and are ready for integration into the main codebase:
-
-#### PR #779: Enhance Geo-Coordinate Parsing and Precision in Extraction Framework 
-- **Status:** ✅ Approved by [@jimkont](https://github.com/jimkont) (DBpedia maintainer / Mentor)
-- **Merge Status:** Ready for production deployment
-- **Integration Impact:** Fixes Southern Hemisphere coordinate inaccuracies affecting 50,000+ geographic entities
-- **Code Location:** [github.com/dbpedia/extraction-framework/pull/779](https://github.com/dbpedia/extraction-framework/pull/779)
-
-#### PR #780: Enable single-extractor execution on the mapping server
-- **Status:** ✅ Approved by [@jimkont](https://github.com/jimkont) (DBpedia maintainer / Mentor)
-- **Merge Status:** Ready for production deployment
-- **Integration Impact:** Enables individual extractor testing at mappings.dbpedia.org
-- **Code Location:** [github.com/dbpedia/extraction-framework/pull/780](https://github.com/dbpedia/extraction-framework/pull/780)
-
-### Code Quality Verification
-- **Total Contribution:** 1,378 lines added, 226 lines removed across 9 core framework files
-- **SonarQube Analysis:** ✅ Quality Gate Passed (0 new issues, 0 security hotspots)
-- **CI/CD Status:** ✅ All automated checks successful
-- **Production Readiness:** ✅ Both PRs approved and merge-ready
-
-## Acknowledgments
-
-Special thanks to my mentors **Nausheen Fatma** and **Dimitris Kontokostas** for their guidance, detailed code reviews, and continuous support throughout the project. Their expertise in semantic web technologies and international standards was instrumental in achieving these results :)
-
----
-
-This project significantly enhances DBpedia's geo-coordinate extraction accuracy and provides valuable debugging tools for the developer community. Both contributions are production-ready and approved for integration into the main DBpedia codebase, directly impacting thousands of geographic entities worldwide.
+Both pull requests are approved and production-ready, directly benefiting the DBpedia ecosystem and thousands of downstream applications that rely on accurate geographic data.
